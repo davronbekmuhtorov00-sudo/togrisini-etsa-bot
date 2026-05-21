@@ -11,7 +11,7 @@ from telegram import Bot
 #   Kuniga 10 ta post — har xil mavzuda
 # ============================================================
 
-BOT_TOKEN = "8807998942:AAGsAvXIuCOH2PM-9x2XKRGFtB9aThYqxZo"
+BOT_TOKEN ="8807998942:AAGsAvXIuCOH2PM-9x2XKRGFtB9aThYqxZo"
 CHANNEL_ID = "@togrisini_etsa"
 CLAUDE_API_KEY = "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"  # <-- shu yerga yozing
 
