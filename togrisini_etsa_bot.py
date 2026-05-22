@@ -49,7 +49,10 @@ def mavzularni_yangilash():
     print(f"[{time.strftime('%H:%M')}] 15 та мавзу танланди.")
 
 def post_yarat(mavzu):
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # 'gemini-1.5-flash' o'rniga 'gemini-1.5-flash-001' yoki shunchaki 'gemini-1.5-flash' ni tekshirib ko'ring
+    # Agar baribir 404 chiqsa, demak API kalitingizda cheklov bor.
+    model = genai.GenerativeModel('gemini-1.5-flash') 
+    
     prompt = f"""Сен Telegram канали учун жуда қисқа (20-25 сўз), аччиқ ҳақиқатларни ёзувчи ботсан.
     
     ҚАТЪИЙ ТАЛАБЛАР:
@@ -60,8 +63,11 @@ def post_yarat(mavzu):
     5. Мавзу: {mavzu}
     6. Охирида #тогрисини #хакикат хаштагларини қўй."""
     
-    response = model.generate_content(prompt)
-    return response.text
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Xatolik yuz berdi: {str(e)}"
 
 async def post_yuborish_async():
     global bugungi_mavzular
