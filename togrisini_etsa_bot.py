@@ -6,22 +6,12 @@ import random
 from telegram import Bot
 import google.generativeai as genai
 
-# ============================================================
-#   ТОҒРИСИНИ ЭТСАМ — АВТОМАТИК ПОСТ БОТ (GEMINI SHORT VERSION)
-#   Канал: @togrisini_etsa
-#   Кунига 15 та post — Қисқа ва стикерларсиз формат
-# ============================================================
-
 BOT_TOKEN = "8807998942:AAGsAvXIuCOH2PM-9x2XKRGFtB9aThYqxZo"
 CHANNEL_ID = "@togrisini_etsa"
 
-# Gemini API калитини муҳит ўзгарувчиларидан созлаймиз
+# API Калитини ўқиш
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 genai.configure(api_key=GEMINI_KEY)
-
-# ============================================================
-#   25 ТА МАВЗУ — ҳар куни 15 таси тасодифий танланади
-# ============================================================
 
 MAVZULAR = [
     "пул ва бойлик — одамлар буни очиқчасига гапирмайди, лекин ҳамманинг миясида",
@@ -51,121 +41,55 @@ MAVZULAR = [
     "ҳаётнинг ўтиши — кеча бола эдинг, бугун ўзинг ҳам билмайсан қаерга кетаётганингни",
 ]
 
-# ============================================================
-#   КУНЛИК 15 ПОСТНИНГ ВАҚТЛАРИ
-# ============================================================
+VAQTLAR = ["07:00", "08:20", "10:00", "11:30", "13:00", "14:30", "16:00", "17:30", "19:00", "20:30", "21:30", "22:30", "23:30", "00:30", "02:00"]
 
-VAQTLAR = [
-    "07:00", "08:30", "10:00", "11:30", "13:00",
-    "14:30", "16:00", "17:30", "19:00", "20:30",
-    "21:30", "22:30", "23:30", "00:30", "02:00",
-]
-
+bot = Bot(token=BOT_TOKEN)
 bugungi_mavzular = []
 
 def mavzularni_yangilash():
     global bugungi_mavzular
     bugungi_mavzular = random.sample(MAVZULAR, 15)
-    print(f"\n[{time.strftime('%Y-%m-%d %H:%M')}] Бугунги 15 мавзу танланди:")
-    for i, m in enumerate(bugungi_mavzular, 1):
-        print(f"  {i}. {m[:50]}...")
-
-def post_yarat(mavzu, post_raqami):
-    soat = int(time.strftime("%H"))
-    if soat < 9:
-        kayfiyat = "ерта тонг — чуқур, ўйлантирадиган"
-    elif soat < 12:
-        kayfiyat = "эрталаб — ҳаракатга ундовчи, кучли"
-    elif soat < 15:
-        kayfiyat = "тушдан кейин — амалий, ҳаётий мисол"
-    elif soat < 18:
-        kayfiyat = "кечки қисм — кузатув, тажриба"
-    elif soat < 21:
-        kayfiyat = "кечқурун — самимий, ҳиссиётли"
-    else:
-        kayfiyat = "кеч тун — фалсафий, чуқур"
-
-    prompt = f"""Сен "Тоғрисини этсам" Telegram канали учун жуда қисқа ва кескин пост ёзаяпсан.
-
-КАНАЛ РУҲИ:
-- Одамлар айтишга қўрқадиган аччиқ ҳақиқатлар.
-- Услуб: Жиддий, катталар учун, кескин ва лўнда.
-
-МАВЗУ: {mavzu}
-КАЙФИЯТ: {kayfiyat}
-
-ҚАТЪИЙ ТАЛАБЛАР:
-1. Ҳажми: Жами 20-25 та сўздан иборат бўлсин (жуда қисқа, афоризмдек).
-2. СТИКЕРЛАР (EMOJI) УМУМАН ШАРТ ЭМАС, БИТТА ҲАМ СТИКЕР ИШЛАТМА!
-3. Пост ҳеч қачон "Тоғрисини этсам" деп бошланмасин. Тўғридан-тўғри фикрдан бошлансин.
-4. Тил: Ўзбек тили, кирилл алифбосида бўлиши шарт.
-5. Охирида фақат 2 та ҳаштаг қўй: #тогрисини #хакикат
-6. Фақат пост матнини қайтар, ортиқча гап ёзма."""
-
-    model = genai.GenerativeModel('gemini-2.0-flash')
-    response = model.generate_content(prompt)
+    print(f"[{time.strftime('%H:%M')}] 15 та мавзу танланди.")
     
+def post_yarat(mavzu):
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    
+    # Promptni yanada qat'iylashtirdik
+    prompt = f"""Сен Telegram канали учун жуда қисқа (15-20 сўз), аччиқ ҳақиқатларни ёзувчи ботсан.
+    
+    ҚАТЪИЙ ТАЛАБЛАР:
+    1. Жуда муҳим: Постни ҳеч қачон "Тоғрисини этсам" ёки "Тоғрисини айтганда" деган иборалар билан БОШЛАМА!
+    2. Постни тўғридан-тўғри мавзунинг ўзидан ёки фикрдан бошла.
+    3. СТИКЕР ИШЛАТМА!
+    4. Ўзбек тилида, кирилл алифбосида ёз.
+    5. Мавзу: {mavzu}
+    6. Охирида #тогрисини #хакикат хаштагларини қўй."""
+    
+    response = model.generate_content(prompt)
     return response.text
 
-post_raqami_hisoblagich = [0]
-
-async def post_yuborish():
+async def post_yuborish_async():
     global bugungi_mavzular
-
-    if not bugungi_mavzular:
-        mavzularni_yangilash()
-
-    post_raqami_hisoblagich[0] += 1
-    raqam = post_raqami_hisoblagich[0]
-
-    mavzu_index = (raqam - 1) % 15
-    mavzu = bugungi_mavzular[mavzu_index]
-
+    if not bugungi_mavzular: mavzularni_yangilash()
+    mavzu = bugungi_mavzular.pop(0)
     try:
-        print(f"\n[{time.strftime('%Y-%m-%d %H:%M')}] Post #{raqam} yaratilmoqda...")
-        matn = post_yarat(mavzu, raqam)
-
-        bot = Bot(token=BOT_TOKEN)
-        await bot.send_message(
-            chat_id=CHANNEL_ID,
-            text=matn,
-            parse_mode="HTML"
-        )
-        print(f"[{time.strftime('%Y-%m-%d %H:%M')}] ✓ Post #{raqam} yuborildi!")
-
+        matn = post_yarat(mavzu)
+        await bot.send_message(chat_id=CHANNEL_ID, text=matn)
+        print(f"✅ Пост кетди: {mavzu[:20]}")
     except Exception as e:
-        print(f"[{time.strftime('%Y-%m-%d %H:%M')}] ✗ Xatolik (Post #{raqam}): {e}")
+        print(f"❌ ХАТОЛИК: {e}")
 
 def ishga_tushir():
-    asyncio.run(post_yuborish())
+    asyncio.run(post_yuborish_async())
 
-# ============================================================
-#   JADVAL
-# ============================================================
-
+# Jadval
 schedule.every().day.at("06:55").do(mavzularni_yangilash)
-
 for vaqt in VAQTLAR:
     schedule.every().day.at(vaqt).do(ishga_tushir)
 
-# ============================================================
-#   ISHGA TUSHIRISH
-# ============================================================
-
 if __name__ == "__main__":
-    print("=" * 55)
-    print("   ТОҒРИСИНИ ЭТСАМ — БОТ ИШГА ТУШДИ (GEMINI SHORT)")
-    print("=" * 55)
-    print(f"   Канал  : {CHANNEL_ID}")
-    print(f"   Кунига : 15 та пост")
-    print(f"   Вақтлар: 07:00 → 02:00")
-    print("=" * 55)
-
-    if not GEMINI_KEY:
-        print("✗ ДИҚҚАТ: GEMINI_API_KEY муҳит ўзгарувчиси топилмади!")
-
+    print("Бот ишга тушди...")
     mavzularni_yangilash()
-
     while True:
         schedule.run_pending()
         time.sleep(30)
