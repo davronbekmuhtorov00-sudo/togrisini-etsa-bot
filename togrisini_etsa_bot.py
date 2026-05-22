@@ -9,7 +9,6 @@ import google.generativeai as genai
 BOT_TOKEN = "8807998942:AAGsAvXIuCOH2PM-9x2XKRGFtB9aThYqxZo"
 CHANNEL_ID = "@togrisini_etsa"
 
-# API Калитини ўқиш
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 genai.configure(api_key=GEMINI_KEY)
 
@@ -41,8 +40,6 @@ MAVZULAR = [
     "ҳаётнинг ўтиши — кеча бола эдинг, бугун ўзинг ҳам билмайсан қаерга кетаётганингни",
 ]
 
-VAQTLAR = ["07:00", "08:20", "10:00", "11:30", "13:00", "14:30", "16:00", "17:30", "19:00", "20:30", "21:30", "22:30", "23:30", "00:30", "02:00"]
-
 bot = Bot(token=BOT_TOKEN)
 bugungi_mavzular = []
 
@@ -50,15 +47,13 @@ def mavzularni_yangilash():
     global bugungi_mavzular
     bugungi_mavzular = random.sample(MAVZULAR, 15)
     print(f"[{time.strftime('%H:%M')}] 15 та мавзу танланди.")
-    
+
 def post_yarat(mavzu):
     model = genai.GenerativeModel('gemini-1.5-flash')
-    
-    # Promptni yanada qat'iylashtirdik
-    prompt = f"""Сен Telegram канали учун жуда қисқа (15-20 сўз), аччиқ ҳақиқатларни ёзувчи ботсан.
+    prompt = f"""Сен Telegram канали учун жуда қисқа (20-25 сўз), аччиқ ҳақиқатларни ёзувчи ботсан.
     
     ҚАТЪИЙ ТАЛАБЛАР:
-    1. Жуда муҳим: Постни ҳеч қачон "Тоғрисини этсам" ёки "Тоғрисини айтганда" деган иборалар билан БОШЛАМА!
+    1. Жуда муҳим: Постни ҳеч қачон "Тоғрисини этсам" ёки "Тоғрисини айтганда" иборалари билан БОШЛАМА!
     2. Постни тўғридан-тўғри мавзунинг ўзидан ёки фикрдан бошла.
     3. СТИКЕР ИШЛАТМА!
     4. Ўзбек тилида, кирилл алифбосида ёз.
@@ -75,21 +70,31 @@ async def post_yuborish_async():
     try:
         matn = post_yarat(mavzu)
         await bot.send_message(chat_id=CHANNEL_ID, text=matn)
-        print(f"✅ Пост кетди: {mavzu[:20]}")
+        print(f"✅ Пост муваффақиятли кетди: {mavzu[:20]}")
     except Exception as e:
-        print(f"❌ ХАТОЛИК: {e}")
+        print(f"❌ XATOLIK YUZ BERDI: {str(e)}")
 
 def ishga_tushir():
     asyncio.run(post_yuborish_async())
 
-# Jadval
-schedule.every().day.at("06:55").do(mavzularni_yangilash)
-for vaqt in VAQTLAR:
-    schedule.every().day.at(vaqt).do(ishga_tushir)
-
 if __name__ == "__main__":
     print("Бот ишга тушди...")
     mavzularni_yangilash()
+    
+    # ТЕСТ УЧУН: Бот ишга тушгандан 10 сония ўтиб битта пост синов тариқасида юборади
+    print("TEST: 10 сониядан сўнг биринчи пост юборилади...")
+    asyncio.run(post_yuborish_async())
+    
+    # Jadval - 15 ta vaqtni qaytardik
+    schedule.every().day.at("06:55").do(mavzularni_yangilash)
+    
+    vaqtlar_listi = ["07:00", "08:40", "10:00", "11:30", "13:00", "14:30", 
+                     "16:00", "17:30", "19:00", "20:30", "21:30", "22:30", 
+                     "23:30", "00:30", "02:00"]
+    
+    for vaqt in vaqtlar_listi:
+        schedule.every().day.at(vaqt).do(ishga_tushir)
+
     while True:
         schedule.run_pending()
         time.sleep(30)
