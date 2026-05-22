@@ -102,7 +102,7 @@ def post_yarat(mavzu, post_raqami):
 5. Охирида фақат 2 та ҳаштаг қўй: #тогрисини #хакикат
 6. Фақат пост матнини қайтар, ортиқча гап ёзма."""
 
-    model = genai.GenerativeModel('gemini-1.5-pro')
+    model = genai.GenerativeModel('gemini-2.0-flash')
     response = model.generate_content(prompt)
     
     return response.text
